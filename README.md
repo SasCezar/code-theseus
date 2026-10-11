@@ -7,9 +7,9 @@
 [![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-blue.svg)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-| 📦 **10,764** | 🌐 **4** | 📉 **~10×** | 🧱 **+17%** |
+| 📦 **10,764** | 🌐 **4** | 📉 **~10×** | 🧱 **+22%** |
 |:---:|:---:|:---:|:---:|
-| repositories processed | languages: Java, Python, C/C++, C# | fewer tokens than raw source | closer module structure when agents rebuild from the docs |
+| repositories processed | languages: Java, Python, C/C++, C# | fewer tokens than raw source | more of the original modules recreated when agents rebuild from the docs |
 
 📄 *The Code of Theseus: Can Agents Rebuild Software from Recovered Design Documents?*
 
@@ -70,7 +70,8 @@ without the recovered documents:
 
 - ✅ **Good documentation.** An LLM judge rates the documents clear and
   consistent across generator models.
-- 🧱 **Better structure.** With the documents, the agent builds a module
+- 🧱 **Better structure.** With the documents, the agent recreates 22% more
+  of the original modules (module recall 0.51 → 0.63) and builds a module
   structure significantly closer to the original (module F1 0.54 → 0.63,
   closer on 17 of 24 libraries). This is what tests can't specify and what
   teams maintain.

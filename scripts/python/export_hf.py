@@ -229,8 +229,9 @@ redistributed: check out `url` at `commit_sha` to recover it.
 
 In the paper's Ship of Theseus test, a coding agent rebuilt
 [Commit0](https://github.com/commit-0/commit0) libraries from these
-documents alone. With requirements and architecture, it built a module
-structure **significantly closer to the original** than with intent alone
+documents alone. With requirements and architecture, it recreated **22% more
+of the original modules** than with intent alone (module recall 0.51 → 0.63)
+and built a module structure **significantly closer to the original**
 (module F1 0.54 → 0.63), at the same test pass rate.
 
 ## 🏢 Use it for

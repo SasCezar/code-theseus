@@ -95,7 +95,7 @@ MAIN = [
     Metric(
         "all_module_f1", "Module F1, all modules", "Architecture", 1, 1, 2, "AllModF"
     ),
-    Metric("symbol_ari", "Symbol grouping (ARI)", "Architecture", 1, 1, 2, "Ari"),
+    Metric("symbol_ari", "Co-location agreement (ARI)", "Architecture", 1, 1, 2, "Ari"),
     Metric("task_tokens", "Task prompt (k tokens)", "Cost", 0, 1e-3, 1),
     Metric("agent_steps", "Agent steps", "Cost", -1, 1, 0),
     Metric("output_tokens", "Output tokens (k)", "Cost", -1, 1e-3, 0, "OutTok"),
@@ -425,7 +425,7 @@ def by_generator(
 GENERATOR_LABELS = {
     "held_out_pass_rate": "Held-out tests (pp)",
     "module_f1": "Module F1",
-    "symbol_ari": "Symbol grouping",
+    "symbol_ari": "Co-location agreement",
 }
 
 
