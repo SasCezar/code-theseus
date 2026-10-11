@@ -1,0 +1,24 @@
+repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v6.0.0
+      hooks:
+          - id: check-added-large-files
+            args: [--maxkb=10000] # Don't allow files larger than 10MB
+          - id: check-merge-conflict
+          - id: check-yaml
+          - id: check-toml
+          - id: check-json
+          - id: end-of-file-fixer
+            exclude: \.(pdf|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$
+          - id: trailing-whitespace
+            exclude: \.(pdf|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$
+          - id: detect-private-key
+
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.14.10
+      hooks:
+          - id: ruff-check
+            types_or:
+                - python
+            args: [--fix]
+          - id: ruff-format

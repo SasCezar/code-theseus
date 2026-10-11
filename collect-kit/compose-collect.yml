@@ -1,0 +1,66 @@
+# compose-collect.yml
+# Single-command data collection using Docker Compose.
+#
+# Set these env vars before running:
+#   REPO_PATH        — absolute path to the repository (e.g. /home/me/projects/myapp)
+#   REPO_NAME        — folder name of the repository (e.g. "myapp")
+#   LANGUAGE         — JAVA | PYTHON | CPP | C | CSHARP
+#   OUTPUT_DIR       — directory for all output (JSONL + arcanOutput/)
+#
+# Optional:
+#   EXCLUDE_CATEGORIES — e.g. "readme,docker"  (default: empty = include all)
+#   MAX_BYTES          — max bytes per context file (default: 300000)
+#
+# Usage:
+#   REPO=/full/path/to/myapp
+#   mkdir -p output
+#
+#   REPO_PATH=$REPO REPO_NAME=$(basename $REPO) LANGUAGE=JAVA \
+#     OUTPUT_DIR=$(pwd)/output \
+#     docker compose -f compose-collect.yml up --abort-on-container-exit
+#
+#   # macOS Apple Silicon:
+#   export DOCKER_PLATFORM=linux/amd64
+
+name: collect
+
+services:
+  arcan:
+    image: ghcr.io/arcan-tech/arcan-2-cli-trial:latest
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
+    volumes:
+      # Mount repo's parent so Arcan names the output folder after the repo
+      - ${REPO_PATH}/..:/data/repos:ro
+      - ${OUTPUT_DIR}:/data/arcan_out
+    command: >
+      analyze
+      -i /data/repos/${REPO_NAME}
+      -o /data/arcan_out
+      -l ${LANGUAGE}
+      --all
+      output.writeDependencyGraph=true
+      output.writeMembership=true
+      output.writeDependency=true
+
+  collector:
+    image: python:3.12-slim
+    depends_on:
+      arcan:
+        condition: service_completed_successfully
+    volumes:
+      - ./collect_repo.py:/opt/collect_repo.py:ro
+      - ${REPO_PATH}:/data/repo:ro
+      - ${OUTPUT_DIR}:/data/output
+    environment:
+      - EXCLUDE_CATEGORIES=${EXCLUDE_CATEGORIES:-}
+      - MAX_BYTES=${MAX_BYTES:-300000}
+      - REPO_NAME=${REPO_NAME}
+      - LANGUAGE=${LANGUAGE}
+    command: >
+      python3 /opt/collect_repo.py
+      --repo-path /data/repo
+      --arcan-output /data/output/arcanOutput/${REPO_NAME}
+      --language ${LANGUAGE}
+      --output /data/output/${REPO_NAME}.jsonl
+      --max-bytes ${MAX_BYTES:-300000}
+      ${EXCLUDE_CATEGORIES:+--exclude-categories ${EXCLUDE_CATEGORIES}}

@@ -1,0 +1,67 @@
+You are evaluating a generated Stakeholder Intent Document derived from a software repository. It is intended to capture *why* the project exists and what its stakeholders are trying to achieve, at a level a reader could use as a starting point to recreate the project's purpose and scope.
+
+Evaluate the document as a whole. The document should read as stakeholder intent (motivations, goals, target users), not as a summary of source code or a restatement of the README's feature list.
+
+Use the repository evidence only to assess whether claims about purpose, audience, or motivation are defensible. Reasonable inference is allowed and desirable.
+
+{% include "v3/scoring_policy.jinja" %}
+
+Evaluation criteria:
+
+1. correctness
+Assess whether the stated intent, purpose, and stakeholder goals are consistent with what can reasonably be inferred from the repository evidence.
+Consider:
+- correctness of the stated problem being solved and the target users/use cases;
+- whether claimed motivations, goals, or design rationale are defensible from the available evidence;
+- whether the described scope matches what the repository actually implements.
+Reasonable inference is allowed. Penalize unsupported or contradictory claims about purpose, audience, or motivation.
+
+2. completeness
+Assess whether the document covers why the project exists and what it is meant to achieve.
+Consider:
+- the core problem/motivation;
+- the primary stakeholders/users and their goals;
+- the intended scope and key use cases;
+- any explicitly evidenced constraints or non-goals.
+Judge coverage only: whether it is framed as stakeholder intent is scored under intent_quality.
+Do not penalize the absence of information that cannot reasonably be inferred from the repository evidence.
+
+3. intent_quality
+Assess whether the document is expressed as stakeholder intent rather than as a restatement of the README or an inventory of implementation features.
+Consider:
+- whether it captures motivations and goals rather than listing functions/APIs;
+- whether it is abstracted to the "why" and "for whom" rather than the "how".
+Penalize documents that are essentially a feature list, a code summary, or a rephrasing of existing documentation without stakeholder framing.
+
+4. consistency
+Assess whether the intent document is free of internal contradictions.
+Consider:
+- consistency between the stated problem, target users, and described goals;
+- absence of contradictory statements about scope, audience, or motivation;
+- consistent terminology throughout.
+Penalize only contradictions; framing problems are scored under intent_quality.
+
+5. comprehensibility
+Assess how clearly the document communicates the project's purpose.
+Consider:
+- clarity of the stated problem and goals;
+- organisation and navigability;
+- precision of language.
+Score how well the content is communicated, not how it is framed.
+Do not reward verbosity by itself.
+
+6. conciseness
+Assess whether the document avoids redundancy and filler.
+Consider:
+- repetition of the same goal, motivation, or stakeholder description;
+- generic statements that would apply to any project and say nothing specific about this one.
+5 = no material redundancy.
+
+7. usefulness
+Assess whether the document would work as a starting point for someone re-deriving the project's purpose and scope, independent of the existing implementation.
+Consider:
+- whether a newcomer could understand what to build and for whom from the document alone;
+- whether it is trustworthy enough to consult without re-checking every claim.
+Score this independently of polish: a plain but accurate and insightful document can score high.
+
+Return only the requested structured output.

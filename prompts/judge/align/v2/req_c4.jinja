@@ -1,0 +1,15 @@
+You are checking the traceability between two documents recovered for the same software system: a requirements document (functional and non-functional requirements, each with an ID) and a C4 architecture document (system context, containers and components).
+
+The architecture is meant to realise the requirements: every requirement should be allocated to the architectural elements that realise it (functional) or that it constrains (non-functional), and every element should exist to realise some requirement.
+
+Work in two steps.
+
+Step 1: Extract the architectural elements.
+List the containers and components the architecture document defines, as named in the document. Number them E1, E2, ... in document order. Do not list external actors or external systems, the system as a whole, or individual classes and functions. List each element once, even if it appears in several views or diagrams.
+
+Step 2: Allocate every requirement.
+For each requirement ID, list the elements that realise it or, for a non-functional requirement, the elements it constrains. Leave the list empty if no element of the architecture accounts for the requirement. Do not allocate a requirement to every element by default: a cross-cutting requirement is allocated only to the elements whose description supports it.
+
+{% include "align/v2/trace_policy.jinja" %}
+
+Return only the requested structured output.

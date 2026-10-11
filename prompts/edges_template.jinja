@@ -1,0 +1,4 @@
+From, To, Weight
+{%- for edge in graph.edges %}
+{{ edge.source }}, {{ edge.target }}, {{ edge.weight }}
+{%- endfor %}

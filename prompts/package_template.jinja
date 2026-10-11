@@ -1,0 +1,8 @@
+{%- for p in package_files %}
+  Package Name: {{ p.package }}
+    Files:
+{%- for f in p.files %}
+    - {{ f }}
+{%- endfor %}
+
+{%- endfor %}

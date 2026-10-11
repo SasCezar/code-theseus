@@ -1,0 +1,4 @@
+Id, Name, Type, LOC, FanIn, FanOut
+{%- for node in graph.nodes %}
+{{ node.vertex_id }}, {{ node.name }}, {{ node.component_type }}, {{ node.lines_of_code }}, {{ node.fan_in }}, {{ node.fan_out }}
+{%- endfor %}

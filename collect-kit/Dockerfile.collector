@@ -1,0 +1,45 @@
+# Dockerfile.collector
+# Combined image: Arcan (Java) + Python 3 + collect_repo.py.
+# Runs the full pipeline (Arcan analysis → data extraction) in a single container.
+#
+# Build:
+#   docker build -f Dockerfile.collector -t reverse-se-collector .
+#
+# Push to your registry:
+#   docker tag reverse-se-collector <your-registry>/reverse-se-collector:latest
+#   docker push <your-registry>/reverse-se-collector:latest
+#
+# Run:
+#   docker run --rm \
+#     --platform linux/amd64 \               # required on Mac M-series
+#     -v /path/to/repos:/data/repos:ro \     # parent dir of your repo
+#     -v /path/to/arcan_out:/data/arcan_out \
+#     -v /path/to/output:/data/output \
+#     -e REPO_NAME=myapp \
+#     -e LANGUAGE=JAVA \
+#     reverse-se-collector
+#
+# Optional env vars:
+#   EXCLUDE_CATEGORIES   e.g. "readme,docker"
+#   MAX_BYTES            max bytes per context file (default: 300000)
+
+FROM ghcr.io/arcan-tech/arcan-2-cli-trial:latest
+
+USER root
+
+# Base: maven:3-eclipse-temurin-18 (Debian). Python 3 is not included, so we add it.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3 && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY collect_repo.py     /opt/collect_repo.py
+COPY docker-entrypoint.sh /opt/docker-entrypoint.sh
+RUN chmod +x /opt/docker-entrypoint.sh
+
+# Expected volume mounts at runtime:
+#   /data/repos        — read-only parent directory containing the repo folder
+#   /data/arcan_out    — Arcan output (will be created/populated)
+#   /data/output       — final JSONL output destination
+VOLUME ["/data/repos", "/data/arcan_out", "/data/output"]
+
+ENTRYPOINT ["/opt/docker-entrypoint.sh"]

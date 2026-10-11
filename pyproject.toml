@@ -1,0 +1,44 @@
+[project]
+name = "reverse-se"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dotenv>=0.9.9",
+    "igraph>=1.0.0",
+    "jinja2>=3.1.0",
+    "langchain>=1.2.10",
+    "langchain-openai>=1.1.9",
+    "litellm>=1.85.0",
+    "notebook>=7.5.3",
+    "pandas>=3.0.0",
+    "pre-commit>=4.5.1",
+    "pydantic>=2.12.5",
+    "scipy>=1.18.1",
+    "scrapy>=2.14.1",
+    "tiktoken>=0.12.0",
+    "tqdm>=4.67.0",
+]
+
+# torch/transformers/accelerate/llama-cpp-python: only used for *local*
+# model inference/embedding (reverse_se.generation.inference_transformers,
+# reverse_se.evaluation.semantic_voting), never for API-based generation
+# (inference_litellm.py) or the benchmark pipeline (which only ever talks
+# to a remote vLLM/hosted endpoint over HTTP). Split out so environments
+# that never run local models -- e.g. the benchmark Docker image -- don't
+# pull several GB of CUDA/torch wheels they'll never use.
+[project.optional-dependencies]
+local-inference = [
+    "accelerate>=1.0.0",
+    "llama-cpp-python>=0.3.0",
+    "torch>=2.12.0",
+    "transformers>=5.10.2",
+]
+
+[tool.uv.sources]
+reverse_se = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13"]
+build-backend = "uv_build"

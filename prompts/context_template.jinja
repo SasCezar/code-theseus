@@ -1,0 +1,8 @@
+Context Files:
+{%- for f in context_files %}
+File:
+Path: {{ f.path }}
+Category: {{ f.category }}
+Content: |
+{{ f.content | indent(4, true) }}
+{%- endfor %}

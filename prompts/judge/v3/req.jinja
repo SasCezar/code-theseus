@@ -1,0 +1,71 @@
+You are evaluating a generated requirements document derived from a software repository. It lists functional requirements (FR) and non-functional requirements (NFR) intended to guide the project's architecture and implementation.
+
+Evaluate the document as a whole. Do not require explicit "Functional Requirements" / "Non-Functional Requirements" headings, provided FR and NFR content is identifiable.
+
+Use the repository evidence only to assess whether requirement claims are defensible. Reasonable inference beyond literal code is allowed and desirable; do not penalize a requirement merely because it is not a literal restatement of an implementation detail.
+
+{% include "v3/scoring_policy.jinja" %}
+
+Evaluation criteria:
+
+1. correctness
+Assess whether the functional and non-functional requirements are consistent with what can reasonably be inferred from the repository evidence.
+Consider:
+- correctness of claimed capabilities, behaviours, constraints, and quality attributes;
+- whether requirements attributed to the system are actually supported by the implementation;
+- whether the FR/NFR classification itself is correct (a quality attribute framed as an FR, or a capability framed as an NFR, should be penalized).
+Reasonable inference beyond literal code is allowed. Penalize unsupported or contradictory claims about behaviour, constraints, or quality attributes.
+
+2. completeness
+Assess whether the document covers what the system must do and under what constraints.
+Consider:
+- coverage of the major functional capabilities exercised by the codebase;
+- coverage of relevant non-functional concerns (performance, security, reliability, usability, portability, etc.) that are evidenced or reasonably implied.
+Judge coverage only: how well individual requirements are formed is scored under requirements_quality.
+Do not penalize the absence of requirements that cannot reasonably be inferred from the repository evidence.
+
+3. requirements_quality
+Assess whether individual requirements are well-formed as requirements, not just a list of observations about the implementation.
+Consider:
+- whether each requirement is atomic (one requirement, one concern) rather than a compound bundle;
+- whether requirements are stated in a verifiable/testable form rather than vague aspiration;
+- whether requirements are unambiguous;
+- whether requirements are stated at a consistent level of granularity;
+- whether the document avoids simply restating file/class/function names as requirements.
+Penalize requirements that are unverifiable, merely descriptive of code structure, or so vague they cannot guide design or testing.
+
+4. consistency
+Assess whether the requirements document is free of internal contradictions.
+Consider:
+- absence of contradictions between FR and NFR sections;
+- consistent terminology and identifiers across the document;
+- no requirements that conflict with or undermine each other.
+Penalize only contradictions; poorly formed requirements are scored under requirements_quality.
+
+5. comprehensibility
+Assess how clearly the document communicates the requirements.
+Consider:
+- clarity of individual requirement statements and precision of terminology;
+- organisation and navigability (e.g. sensible grouping and numbering of FR vs NFR).
+Score how well the content is communicated, not how requirements are formed.
+Do not reward verbosity by itself.
+
+6. conciseness
+Assess whether the document avoids redundancy and filler.
+Consider:
+- duplicate or overlapping requirements, including the same requirement restated in both FR and NFR;
+- boilerplate requirements that are generic to any software system and say nothing specific about this one.
+5 = no material redundancy.
+
+7. usefulness
+Assess whether the document could serve as the specification that drives design, implementation, and test derivation for this system.
+Consider:
+- whether an implementer could reconstruct the system's essential behaviour from the document alone;
+- whether test cases could be derived from it;
+- whether it is trustworthy enough to consult without re-checking every requirement.
+Score this independently of polish: a plain but accurate and complete document can score high.
+
+Per-section assessment:
+For each of fr and nfr, report identifiability (clear | partial | absent: are these requirements clearly and separately identifiable?) and, unless absent, a correctness score for that section alone. Use null correctness when the section is absent.
+
+Return only the requested structured output.

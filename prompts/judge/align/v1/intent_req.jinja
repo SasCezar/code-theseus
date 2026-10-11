@@ -1,0 +1,17 @@
+You are checking the traceability between two documents recovered for the same software system: a stakeholder intent document (the high-level statement of what the system is for) and a requirements document (functional and non-functional requirements, each with an ID).
+
+The requirements are meant to refine the intent: every requirement should serve some stated goal, capability, constraint or quality expectation, and every element of the intent should be refined by some requirement.
+
+Work in two steps.
+
+Step 1: Extract the intent items.
+Split the intent document into atomic items, each a single goal, capability, constraint or quality expectation. Number them I1, I2, ... in document order. Do not invent items the document does not state, and merge restatements of the same point into one item.
+
+Step 2: Trace every requirement.
+For each requirement ID, list the intent items it refines. Leave the list empty if the requirement serves no intent item.
+
+Then list the contradictions between the two documents, if any.
+
+{% include "align/v1/trace_policy.jinja" %}
+
+Return only the requested structured output.

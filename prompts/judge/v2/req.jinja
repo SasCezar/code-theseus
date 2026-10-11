@@ -1,0 +1,87 @@
+You are evaluating a generated requirements document derived from a software repository. It lists functional requirements (FR) and non-functional requirements (NFR) intended to guide the project's architecture and implementation.
+
+Evaluate the document as a whole. Do not require explicit "Functional Requirements" / "Non-Functional Requirements" headings, provided FR and NFR content is identifiable.
+
+Use the repository evidence only to assess whether requirement claims are defensible. Reasonable inference beyond literal code is allowed and desirable; do not penalize a requirement merely because it is not a literal restatement of an implementation detail.
+
+For each criterion, assign an integer score from 1 to 5.
+
+Scoring policy:
+- 1 = Major deficiencies; the criterion is largely unsatisfied.
+- 2 = Substantial deficiencies; important problems materially reduce usefulness.
+- 3 = Adequate but with notable issues.
+- 4 = Strong; only minor issues are present.
+- 5 = Exceptional; no material issue is found and there is positive evidence that the criterion is fully satisfied.
+
+A score of 5 must not be assigned merely because no obvious error is found.
+Before scoring, identify concrete material defects.
+If a criterion has one major defect, its score should normally be <= 3.
+If a criterion has multiple material minor defects, its score should normally be <= 4.
+
+Evaluation criteria:
+
+1. correctness
+Assess whether the functional and non-functional requirements are consistent with what can reasonably be inferred from the repository evidence.
+Consider:
+- correctness of claimed capabilities, behaviours, constraints, and quality attributes;
+- whether requirements attributed to the system are actually supported by the implementation;
+- whether the FR/NFR classification itself is correct (a quality attribute framed as an FR, or a capability framed as an NFR, should be penalized).
+Reasonable inference beyond literal code is allowed. Penalize unsupported or contradictory claims about behaviour, constraints, or quality attributes.
+
+2. completeness
+Assess whether the document captures the requirements-significant information needed to understand what the system must do and under what constraints.
+Consider:
+- coverage of the major functional capabilities exercised by the codebase;
+- coverage of relevant non-functional concerns (performance, security, reliability, usability, portability, etc.) that are evidenced or reasonably implied;
+- absence of major gaps that would leave an implementer unable to reconstruct the system's essential behaviour from the document alone.
+Do not penalize the absence of requirements that cannot reasonably be inferred from the repository evidence.
+
+3. requirements_quality
+Assess whether individual requirements are well-formed as requirements, not just a list of observations about the implementation.
+Consider:
+- whether each requirement is atomic (one requirement, one concern) rather than a compound bundle;
+- whether requirements are stated in a verifiable/testable form rather than vague aspiration;
+- whether requirements are unambiguous and use consistent terminology;
+- whether the document avoids simply restating file/class/function names as requirements.
+Penalize requirements that are unverifiable, redundant, merely descriptive of code structure, or so vague they cannot guide design or testing.
+
+4. consistency
+Assess whether the requirements document is internally coherent.
+Consider:
+- absence of contradictions between FR and NFR sections;
+- consistent terminology and identifiers across the document;
+- NFRs that do not contradict or undermine stated FRs (and vice versa);
+- consistent scope and level of granularity across requirements.
+Penalize contradictions or incompatible requirements within the document.
+
+5. comprehensibility
+Assess whether the document enables a software engineer to understand what must be built and verified.
+Consider:
+- clarity of individual requirement statements;
+- organisation and navigability (e.g. sensible grouping/numbering of FR vs NFR);
+- precision of terminology;
+- usefulness for downstream design, implementation, or test-case derivation.
+Do not reward verbosity by itself.
+
+Also assess requirements-section identifiability:
+- fr: clear | partial | absent (are functional requirements clearly and separately identifiable?)
+- nfr: clear | partial | absent (are non-functional requirements clearly and separately identifiable?)
+
+Return concrete defects rather than generic criticism. Report each defect as an issue with:
+- a category, one of:
+  - scope_boundary: gets what belongs in or outside the requirements' scope wrong, including non-goals or constraints on scope.
+  - element_identification: invents, misses, conflates, or misidentifies an important requirement, goal, actor, capability, or constraint.
+  - meaning_role: a requirement is present, but its meaning, purpose, responsibility, or intended behavior is wrong.
+  - relationship_dependency: relationships among requirements are wrong (ordering, dependency, causality, traceability, prerequisite, etc.).
+  - classification_type: something is treated as the wrong kind of thing (e.g. FR vs NFR, goal vs requirement, constraint vs implementation choice).
+  - abstraction_granularity: the wrong level of abstraction is used, levels are mixed, or requirements are inappropriately collapsed/split.
+  - modality_priority: the strength, necessity, priority, certainty, or status of a requirement is altered (must vs should, primary vs secondary, current vs proposed).
+  - unsupported_inference: introduces claims, capabilities, constraints, or rationale not supported by the evidence.
+  - representation: the underlying requirement is present but expressed misleadingly or incorrectly (malformed requirement, ambiguous terminology, misleading grouping, etc.).
+- a severity, one of:
+  - major: materially changes or undermines the requirements' usefulness or correctness.
+  - minor: a limited issue that does not invalidate the overall requirements set.
+- a concrete, evidence-based description of the defect.
+
+Do not produce chain-of-thought or hidden reasoning.
+Return only the requested structured output.

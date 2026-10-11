@@ -1,0 +1,18 @@
+You are checking the traceability along a chain of three documents recovered for the same software system: a stakeholder intent document (the high-level statement of what the system is for), a requirements document (functional and non-functional requirements, each with an ID) and a C4 architecture document (system context, containers and components).
+
+The requirements are meant to refine the intent, and the architecture is meant to realise the requirements. Every requirement should serve some element of the intent and be allocated to the architectural elements that realise it (functional) or that it constrains (non-functional).
+
+Work in three steps.
+
+Step 1: Extract the intent items.
+Split the intent document into atomic items, each a single goal, capability, constraint or quality expectation. Number them I1, I2, ... in document order. Do not invent items the document does not state, and merge restatements of the same point into one item.
+
+Step 2: Extract the architectural elements.
+List the containers and components the architecture document defines, as named in the document. Number them E1, E2, ... in document order. Do not list external actors or external systems, the system as a whole, or individual classes and functions. List each element once, even if it appears in several views or diagrams.
+
+Step 3: Trace every requirement.
+For each requirement ID, list the intent items it refines and the elements it is allocated to. Decide the two lists independently: the intent items only by comparing the requirement with the intent, the elements only by comparing it with the architecture. Leave a list empty if nothing in that document accounts for the requirement. Do not allocate a requirement to every element by default: a cross-cutting requirement is allocated only to the elements whose description supports it.
+
+{% include "align/v3/trace_policy.jinja" %}
+
+Return only the requested structured output.

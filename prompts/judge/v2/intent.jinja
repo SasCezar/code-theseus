@@ -1,0 +1,82 @@
+You are evaluating a generated Stakeholder Intent Document derived from a software repository. It is intended to capture *why* the project exists and what its stakeholders are trying to achieve, at a level a reader could use as a starting point to recreate the project's purpose and scope.
+
+Evaluate the document as a whole. The document should read as stakeholder intent (motivations, goals, target users), not as a summary of source code or a restatement of the README's feature list.
+
+Use the repository evidence only to assess whether claims about purpose, audience, or motivation are defensible. Reasonable inference is allowed and desirable.
+
+For each criterion, assign an integer score from 1 to 5.
+
+Scoring policy:
+- 1 = Major deficiencies; the criterion is largely unsatisfied.
+- 2 = Substantial deficiencies; important problems materially reduce usefulness.
+- 3 = Adequate but with notable issues.
+- 4 = Strong; only minor issues are present.
+- 5 = Exceptional; no material issue is found and there is positive evidence that the criterion is fully satisfied.
+
+A score of 5 must not be assigned merely because no obvious error is found.
+Before scoring, identify concrete material defects.
+If a criterion has one major defect, its score should normally be <= 3.
+If a criterion has multiple material minor defects, its score should normally be <= 4.
+
+Evaluation criteria:
+
+1. correctness
+Assess whether the stated intent, purpose, and stakeholder goals are consistent with what can reasonably be inferred from the repository evidence.
+Consider:
+- correctness of the stated problem being solved and the target users/use cases;
+- whether claimed motivations, goals, or design rationale are defensible from the available evidence;
+- whether the described scope matches what the repository actually implements.
+Reasonable inference is allowed. Penalize unsupported or contradictory claims about purpose, audience, or motivation.
+
+2. completeness
+Assess whether the document captures the intent-significant information needed to understand why the project exists and what it is meant to achieve.
+Consider:
+- the core problem/motivation;
+- the primary stakeholders/users and their goals;
+- the intended scope and key use cases;
+- any explicitly evidenced constraints or non-goals.
+Do not penalize the absence of information that cannot reasonably be inferred from the repository evidence.
+
+3. intent_quality
+Assess whether the document is expressed as stakeholder intent rather than as a restatement of the README or an inventory of implementation features.
+Consider:
+- whether it captures motivations and goals rather than listing functions/APIs;
+- whether it is abstracted to the "why" and "for whom" rather than the "how";
+- whether it would plausibly work as a starting point for someone re-deriving the project's purpose and scope, independent of the existing implementation.
+Penalize documents that are essentially a feature list, a code summary, or a rephrasing of existing documentation without stakeholder framing.
+
+4. consistency
+Assess whether the intent document is internally coherent.
+Consider:
+- consistency between the stated problem, target users, and described goals;
+- absence of contradictory statements about scope, audience, or motivation;
+- consistent terminology throughout.
+Penalize contradictions or incompatible statements about the project's purpose.
+
+5. comprehensibility
+Assess whether the document enables a reader to quickly understand why the project exists and what it should achieve.
+Consider:
+- clarity of the stated problem and goals;
+- organisation and navigability;
+- precision of language;
+- usefulness as a starting point for someone unfamiliar with the project.
+Do not reward verbosity by itself.
+
+Return concrete defects rather than generic criticism. Report each defect as an issue with:
+- a category, one of:
+  - scope_boundary: gets what belongs in or outside the project's intended scope wrong, including non-goals.
+  - element_identification: invents, misses, conflates, or misidentifies an important stakeholder, goal, use case, or constraint.
+  - meaning_role: a stated element is present, but its meaning, purpose, or significance is wrong.
+  - relationship_dependency: relationships among goals, stakeholders, or constraints are wrong (dependency, causality, prerequisite, etc.).
+  - classification_type: something is treated as the wrong kind of thing (e.g. a goal framed as a mechanism, or vice versa).
+  - abstraction_granularity: the wrong level of abstraction is used, mixing "why"/"for whom" with implementation-level "how".
+  - modality_priority: the strength, necessity, priority, certainty, or status of a stated goal is altered (must vs should, primary vs secondary, current vs proposed).
+  - unsupported_inference: introduces claims about purpose, audience, or motivation not supported by the evidence.
+  - representation: the underlying intent is present but expressed misleadingly or incorrectly (ambiguous terminology, misleading grouping, etc.).
+- a severity, one of:
+  - major: materially changes or undermines the document's usefulness as a statement of intent.
+  - minor: a limited issue that does not invalidate the overall statement of intent.
+- a concrete, evidence-based description of the defect.
+
+Do not produce chain-of-thought or hidden reasoning.
+Return only the requested structured output.

@@ -1,0 +1,11 @@
+# data/ is 50+GB (cloned repos, scaffolds, run artifacts) and is mounted as
+# a volume at runtime (see compose.yaml's `benchmark` service), never baked
+# into the image or sent as build context.
+data/
+.venv/
+.git/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

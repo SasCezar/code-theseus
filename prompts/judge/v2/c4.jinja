@@ -1,0 +1,96 @@
+You are evaluating a generated software architecture document derived from a software repository.
+
+The document is intended to be human-facing architecture documentation, not a summary of source-code structure or a serialization of a dependency graph.
+
+Evaluate the document as a whole. Do not require the document to use explicit headings named "System Context", "Containers", or "Components", provided that the corresponding architectural information is identifiable.
+
+Use the repository evidence only to assess whether architectural claims are defensible. Do not penalize a document simply because it introduces higher-level abstractions that are not literal nodes or edges in the repository representation.
+
+For each criterion, assign an integer score from 1 to 5.
+
+Scoring policy:
+- 1 = Major deficiencies; the criterion is largely unsatisfied.
+- 2 = Substantial deficiencies; important problems materially reduce usefulness.
+- 3 = Adequate but with notable issues.
+- 4 = Strong; only minor issues are present.
+- 5 = Exceptional; no material issue is found and there is positive evidence that the criterion is fully satisfied.
+
+A score of 5 must not be assigned merely because no obvious error is found.
+Before scoring, identify concrete material defects.
+If a criterion has one major defect, its score should normally be <= 3.
+If a criterion has multiple material minor defects, its score should normally be <= 4.
+
+Evaluation criteria:
+
+1. correctness
+Assess whether the architectural description is consistent with what can reasonably be inferred from the repository evidence.
+Consider:
+- correctness of system responsibilities, boundaries, subsystems, technologies, external systems, data stores, and interactions;
+- whether non-trivial architectural claims are defensible from the available evidence;
+- whether the purpose and direction of important interactions are represented correctly.
+Reasonable architectural inference is allowed and desirable. Do not require architectural elements to correspond literally to implementation entities.
+Penalize unsupported or contradictory claims about technologies, actors, patterns, deployment, quality attributes, design rationale, or interactions.
+
+2. completeness
+Assess whether the document captures the architecturally significant information needed to understand the system.
+Consider:
+- system purpose and boundary;
+- relevant actors and external systems;
+- major architectural elements and their responsibilities;
+- important interactions and data flows;
+- meaningful lower-level decomposition where appropriate.
+Do not penalize the absence of information that cannot reasonably be inferred from the repository evidence.
+
+3. architectural_quality
+Assess whether the document provides a meaningful architectural abstraction of the implementation.
+Consider:
+- whether implementation evidence is transformed into responsibilities, boundaries, collaborations, and design-level concepts;
+- whether the major architectural elements form a coherent decomposition;
+- whether components represent meaningful architectural responsibilities rather than arbitrary files, classes, packages, or modules;
+- whether system-, container-, and component-level concepts are expressed at appropriate levels of abstraction.
+Explicit C4 headings are not required.
+Penalize simple implementation inventories, dependency-graph summaries, arbitrary promotion of implementation entities to architectural elements, or conceptual mixing between C4 levels.
+
+4. consistency
+Assess whether the architecture description is internally coherent across the document.
+Consider:
+- consistency of responsibilities and naming;
+- consistency of containment relationships;
+- agreement between high-level and lower-level descriptions;
+- consistency between prose and diagrams;
+- absence of contradictory architectural relationships.
+Penalize contradictions or incompatible interpretations across different parts of the document.
+
+5. comprehensibility
+Assess whether the document enables a software engineer to form a clear and useful mental model of the system.
+Consider:
+- clarity of responsibilities;
+- clarity of relationships and interactions;
+- organisation and navigability;
+- precision of terminology;
+- usefulness of diagrams and explanations.
+Do not reward verbosity by itself.
+
+Also assess C4-view identifiability:
+- system_context: clear | partial | absent
+- container_level: clear | partial | absent
+- component_level: clear | partial | absent
+
+Return concrete defects rather than generic criticism. Report each defect as an issue with:
+- a category, one of:
+  - scope_boundary: gets what belongs in or outside the system/document wrong, including non-goals, scope, or conceptual boundaries.
+  - element_identification: invents, misses, conflates, or misidentifies an important element (actor, component, constraint, capability, concept, etc.).
+  - meaning_role: an element is present, but its meaning, purpose, responsibility, intended behavior, or significance is wrong.
+  - relationship_dependency: relationships among elements are wrong (ordering, dependency, causality, interaction, containment, traceability, prerequisite, ownership, etc.).
+  - classification_type: something is treated as the wrong kind of thing (e.g. component vs dependency, constraint vs implementation choice).
+  - abstraction_granularity: the wrong level of abstraction is used, levels are mixed, or things are inappropriately collapsed/distinguished.
+  - modality_priority: the strength, necessity, priority, certainty, or status of a statement is altered (must vs should, primary vs secondary, current vs proposed).
+  - unsupported_inference: introduces claims, rationale, constraints, capabilities, or design choices not supported by the evidence.
+  - representation: the underlying idea is present but expressed misleadingly or incorrectly (bad diagram semantics, ambiguous terminology, misleading grouping, etc.).
+- a severity, one of:
+  - major: materially changes or undermines the architectural interpretation.
+  - minor: a limited issue that does not invalidate the overall architecture.
+- a concrete, evidence-based description of the defect.
+
+Do not produce chain-of-thought or hidden reasoning.
+Return only the requested structured output.

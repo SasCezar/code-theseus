@@ -1,0 +1,93 @@
+You are evaluating a generated software architecture document derived from a software repository.
+
+The document is intended to be human-facing architecture documentation, not a summary of source-code structure or a serialization of a dependency graph.
+
+Evaluate the document as a whole. Do not require the document to use explicit headings named "System Context", "Containers", or "Components", provided that the corresponding architectural information is identifiable.
+
+Use the repository evidence only to assess whether architectural claims are defensible. Do not penalize a document simply because it introduces higher-level abstractions that are not literal nodes or edges in the repository representation.
+
+{% include "v3/scoring_policy.jinja" %}
+
+Evaluation criteria:
+
+1. correctness
+Assess whether the architectural description is consistent with what can reasonably be inferred from the repository evidence.
+Consider:
+- correctness of system responsibilities, boundaries, subsystems, technologies, external systems, data stores, and interactions;
+- whether non-trivial architectural claims are defensible from the available evidence;
+- whether the purpose and direction of important interactions are represented correctly.
+Reasonable architectural inference is allowed and desirable. Do not require architectural elements to correspond literally to implementation entities.
+Penalize unsupported or contradictory claims about technologies, actors, patterns, deployment, quality attributes, design rationale, or interactions.
+
+2. completeness
+Assess whether the document covers the architecturally significant information needed to understand the system.
+Consider:
+- system purpose and boundary;
+- relevant actors and external systems;
+- major architectural elements;
+- important interactions and data flows.
+Judge coverage only: how well elements are abstracted is scored under architectural_quality.
+Do not penalize the absence of information that cannot reasonably be inferred from the repository evidence.
+
+3. architectural_quality
+Assess whether the document provides a meaningful architectural abstraction of the implementation.
+Consider:
+- whether implementation evidence is transformed into responsibilities, boundaries, collaborations, and design-level concepts;
+- whether the major architectural elements form a coherent decomposition;
+- whether components represent meaningful architectural responsibilities rather than arbitrary files, classes, packages, or modules;
+- whether system-, container-, and component-level concepts are kept at their own level of abstraction without mixing C4 levels.
+Explicit C4 headings are not required.
+Penalize implementation inventories, file or class listings, dependency-graph summaries, and arbitrary promotion of implementation entities to architectural elements.
+
+4. consistency
+Assess whether the document is free of internal contradictions.
+Consider:
+- consistent naming and responsibilities of the same element across the document;
+- consistent containment (no element placed under incompatible parents);
+- agreement between prose and diagrams;
+- absence of contradictory architectural relationships.
+Penalize only contradictions; a poorly chosen abstraction level is scored under architectural_quality.
+
+5. comprehensibility
+Assess how clearly the document communicates the architecture to a software engineer.
+Consider:
+- clarity of explanations and precision of terminology;
+- organisation and navigability;
+- whether explanations are detailed enough to follow without reading the source code.
+Score how well the content is communicated, not how it is decomposed.
+Do not reward verbosity by itself.
+
+6. conciseness
+Assess whether the document avoids redundancy and filler.
+Consider:
+- repetition of the same information across sections without adding anything new;
+- boilerplate or generic architecture prose not specific to this system.
+5 = no material redundancy. Do not penalize deliberate cross-references or short summaries that add orientation.
+
+7. usefulness
+Assess whether a developer on this project could rely on the document as a reference for understanding, onboarding, and maintaining the system's structure and dependencies.
+Consider:
+- whether it would support concrete tasks, such as locating where a responsibility lives or assessing the impact of a change;
+- whether it is trustworthy enough to consult without re-checking every claim.
+Score this independently of polish: a plain but accurate and insightful document can score high.
+
+8. relationships
+Assess whether the interactions and dependencies between architectural elements are captured correctly and in enough detail.
+Consider:
+- presence of the architecturally significant interactions (calls, data flows, events, storage access);
+- correct direction, purpose, and protocol or technology of each interaction where evidenced;
+- absence of invented or missing dependencies between major elements.
+Penalize a list of elements with no stated relationships, or relationships that contradict the evidence.
+
+9. diagram_quality (null if the document contains no diagrams)
+Assess whether diagrams are correct, readable, and consistent with the prose.
+Consider:
+- correct element types and relationship semantics (arrows, labels, direction);
+- appropriate scope per diagram (no truncation, no mixing of C4 levels);
+- agreement with the textual description.
+Do not penalize the absence of diagrams; return null instead.
+
+Per-view assessment:
+For each of system_context, container_level, and component_level, report identifiability (clear | partial | absent) and, unless absent, a correctness score for that view alone. Use null correctness when the view is absent.
+
+Return only the requested structured output.

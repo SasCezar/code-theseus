@@ -1,0 +1,343 @@
+# vLLM OpenAI-compatible servers for local generation on 2x RTX 6000 Blackwell
+# (96GB each, 192GB total). One service per model — only ONE profile should be
+# started at a time, since the 120B+ models each need both GPUs to fit.
+#
+# Usage:
+#   docker compose --profile mistral up        # Mistral-Medium-3.5-128B (both GPUs)
+#   docker compose --profile gpt-oss up         # GPT-OSS-120B (both GPUs)
+#   docker compose --profile qwen up            # Qwen3.5-122B (both GPUs)
+#   docker compose --profile gemma up           # Gemma-4-31B — 2 independent
+#                                                # single-GPU replicas, ports 8001 + 8005
+#   docker compose --profile nemotron up        # Nemotron-3.5-Lightning-30B-A3B (GPU 0)
+#   docker compose --profile qwen-flash up      # Qwen3.8-Flash-Next-FP8 (both GPUs) —
+#                                                # benchmark / agentic-workflow use only,
+#                                                # not the local generation used by the
+#                                                # other profiles above
+#
+# Gemma fits on a single 96GB GPU, so it runs as 2 data-parallel replicas
+# (one per GPU) rather than one --tensor-parallel-size=2 instance: our query
+# pattern is concurrent/batched generation, which benefits from 2x
+# independent batching capacity more than from splitting one model's compute
+# across GPUs (which only adds cross-GPU all-reduce overhead here). Shard the
+# dataset across both endpoints with --shard_index/--shard_count, e.g.:
+#   python -m reverse_se.generation.inference_litellm \
+#       --dataset data/out/reverse-se_v0.6_p10-95_ctx95_dataset_sample_1000.jsonl \
+#       --model hosted_vllm/gemma-4-31b --api_base http://localhost:8001/v1 \
+#       --concurrency 32 --shard_index 0 --shard_count 2
+#   python -m reverse_se.generation.inference_litellm \
+#       --dataset data/out/reverse-se_v0.6_p10-95_ctx95_dataset_sample_1000.jsonl \
+#       --model hosted_vllm/gemma-4-31b --api_base http://localhost:8005/v1 \
+#       --concurrency 32 --shard_index 1 --shard_count 2
+#
+# Override any *_MODEL / *_MAX_LEN / *_QUANTIZATION value via a .env file next
+# to this compose.yaml (already used for the repo's other secrets) or
+# `MISTRAL_MODEL=... docker compose --profile mistral up`.
+#
+# Then point generation at the running server, via LiteLLM:
+#   python -m reverse_se.generation.inference_litellm \
+#       --dataset data/out/reverse-se_v0.6_p10-95_ctx95_dataset_sample_1000.jsonl \
+#       --model hosted_vllm/mistral-medium-3.5-128b \
+#       --api_base http://localhost:8004/v1
+
+x-vllm-base: &vllm-base
+    image: vllm/vllm-openai:${VLLM_IMAGE_TAG:-latest}
+    ipc: host
+    restart: unless-stopped
+    environment:
+        - HF_TOKEN=${HF_TOKEN:-}
+    volumes:
+        - /data/srv/llm/huggingface:/root/.cache/huggingface
+
+services:
+    # ── Gemma-4-31B (replica 1 of 2, GPU 0) ── see the profile note above for
+    # why this is 2 data-parallel replicas instead of --tensor-parallel-size=2
+    gemma-4-31b:
+        <<: *vllm-base
+        profiles: ["gemma"]
+        container_name: vllm-gemma-4-31b
+        ports:
+            - "8001:8000"
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          device_ids: ["0"]
+                          capabilities: [gpu]
+        command:
+            - --model=${GEMMA_MODEL:-google/gemma-4-31B-it}
+            - --served-model-name=gemma-4-31b
+            - --tensor-parallel-size=${GEMMA_TP:-1}
+            - --gpu-memory-utilization=${GEMMA_GPU_UTIL:-0.90}
+            - --max-model-len=${GEMMA_MAX_LEN:-131072}
+
+    # ── Gemma-4-31B (replica 2 of 2, GPU 1) ── same weights, independent instance
+    gemma-4-31b-2:
+        <<: *vllm-base
+        profiles: ["gemma"]
+        container_name: vllm-gemma-4-31b-2
+        ports:
+            - "8005:8000"
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          device_ids: ["1"]
+                          capabilities: [gpu]
+        command:
+            - --model=${GEMMA_MODEL:-google/gemma-4-31B-it}
+            - --served-model-name=gemma-4-31b
+            - --tensor-parallel-size=${GEMMA_TP:-1}
+            - --gpu-memory-utilization=${GEMMA_GPU_UTIL:-0.90}
+            - --max-model-len=${GEMMA_MAX_LEN:-131072}
+
+    # ── GPT-OSS-120B ── ships natively MXFP4-quantised, no --quantization flag ──
+    gpt-oss-120b:
+        <<: *vllm-base
+        profiles: ["gpt-oss"]
+        container_name: vllm-gpt-oss-120b
+        ports:
+            - "8002:8000"
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          device_ids: ["0", "1"]
+                          capabilities: [gpu]
+        command:
+            - --model=${GPT_OSS_MODEL:-openai/gpt-oss-120b}
+            - --served-model-name=gpt-oss-120b
+            - --tensor-parallel-size=${GPT_OSS_TP:-2}
+            - --gpu-memory-utilization=${GPT_OSS_GPU_UTIL:-0.90}
+            - --max-model-len=${GPT_OSS_MAX_LEN:-131072}
+            - --reasoning-parser=${GPT_OSS_REASONING_PARSER:-openai_gptoss}
+
+    # ── Qwen3.5-122B ── officially pre-quantised FP8 checkpoint, no --quantization flag needed
+    qwen-3.5-122b:
+        <<: *vllm-base
+        profiles: ["qwen"]
+        container_name: vllm-qwen-3.5-122b
+        ports:
+            - "8003:8000"
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          device_ids: ["0", "1"]
+                          capabilities: [gpu]
+        command:
+            - --model=${QWEN_MODEL:-Qwen/Qwen3.5-122B-A10B-FP8}
+            - --served-model-name=qwen-3.5-122b
+            - --tensor-parallel-size=${QWEN_TP:-2}
+            - --gpu-memory-utilization=${QWEN_GPU_UTIL:-0.90}
+            - --max-model-len=${QWEN_MAX_LEN:-131072}
+            - --reasoning-parser=${QWEN_REASONING_PARSER:-qwen3}
+            # Qwen3.5's hybrid Mamba+attention layers need one Mamba cache slot per
+            # concurrent sequence; the default max_num_seqs=1024 needs more slots
+            # than fit at this gpu-memory-utilization (vLLM computed 865 available
+            # and refused to start CUDA graph capture). We only ever send
+            # --concurrency requests at once from the client, so cap well below
+            # that ceiling instead of raising memory utilization further.
+            - --max-num-seqs=${QWEN_MAX_NUM_SEQS:-128}
+
+    # ── Mistral-Medium-3.5-128B ── Tekken tokenizer needs --tokenizer-mode mistral
+    mistral-medium-3.5-128b:
+        <<: *vllm-base
+        profiles: ["mistral"]
+        container_name: vllm-mistral-medium-3-5-128b
+        ports:
+            - "8004:8000"
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          device_ids: ["0", "1"]
+                          capabilities: [gpu]
+        command:
+            - --model=${MISTRAL_MODEL:-mistralai/Mistral-Medium-3.5-128B}
+            - --served-model-name=mistral-medium-3.5-128b
+            - --tokenizer-mode=mistral
+            # Splits [THINK] reasoning from the answer, so reasoning_effort=high
+            # (sent per request) can think before the structured JSON output.
+            - --reasoning-parser=mistral
+            - --tensor-parallel-size=${MISTRAL_TP:-2}
+            - --quantization=${MISTRAL_QUANTIZATION:-fp8}
+            - --gpu-memory-utilization=${MISTRAL_GPU_UTIL:-0.95}
+            - --max-model-len=${MISTRAL_MAX_LEN:-131072}
+
+    # ── Nemotron-3.5-Lightning-30B-A3B (BF16) ── hybrid Mamba-MoE, 30B total /
+    # 3B active. The ~60GB BF16 checkpoint fits one 96GB GPU, so this runs on
+    # GPU 0 only, following the single-H100 serve command from the model card
+    # (https://recipes.vllm.ai/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16).
+    # Needs vLLM 0.27.1+, hence the pinned image tag. Reasoning is on by default
+    # and its tokens count toward max_tokens; send
+    # chat_template_kwargs={"enable_thinking": false} to turn it off.
+    nemotron-3.5-lightning-30b:
+        <<: *vllm-base
+        image: vllm/vllm-openai:${NEMOTRON_IMAGE_TAG:-v0.28.0}
+        profiles: ["nemotron"]
+        container_name: vllm-nemotron-3-5-lightning-30b
+        ports:
+            - "8007:8000"
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          device_ids: ["${NEMOTRON_GPU:-0}"]
+                          capabilities: [gpu]
+        command:
+            - --model=${NEMOTRON_MODEL:-nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16}
+            - --served-model-name=nemotron-3.5-lightning-30b
+            - --gpu-memory-utilization=${NEMOTRON_GPU_UTIL:-0.90}
+            - --max-model-len=${NEMOTRON_MAX_LEN:-262144}
+            # Same hybrid-attention Mamba cache concern as Qwen3.5 (see the
+            # note on qwen-3.5-122b above); 128 is also the model card's value.
+            - --max-num-seqs=${NEMOTRON_MAX_NUM_SEQS:-128}
+            - --enable-prefix-caching
+            - --async-scheduling
+            - --mamba-backend=flashinfer
+            - --mamba-ssm-cache-dtype=float16
+            - --enable-mamba-cache-stochastic-rounding
+            - --mamba-cache-philox-rounds=5
+            - --reasoning-parser=nemotron_v3
+            - --tool-call-parser=qwen3_coder
+            - --enable-auto-tool-choice
+
+    # ── Qwen3.8-Flash-Next-FP8 ── used for benchmark / agentic-workflow runs,
+    # NOT for local generation like the other models above. ~125B core MoE (512
+    # experts, 10 routed + 1 shared, 6B active) + a separate 51B N-gram/PLE
+    # embedding table + a 4B MTP head, hybrid Gated DeltaNet + Qwen Sparse
+    # Attention. Officially pre-quantised FP8 checkpoint (fine-grained, block
+    # size 128, ~173GiB total) — no --quantization flag needed.
+    #
+    # Day-0 support only: the stock vllm/vllm-openai image doesn't recognise
+    # this checkpoint's `qwen4_exp` architecture yet, so this pins the
+    # dedicated image tag vLLM published for it (needs vLLM 0.29.0+ — see
+    # https://recipes.vllm.ai/Qwen/Qwen3.8-Flash-Next). VLLM_PLE_CPU_OFFLOAD=1
+    # moves the ~51GiB N-gram/PLE table to host RAM, which is what makes the
+    # ~173GiB checkpoint fit across our 2x96GB (192GB) GPUs at all — without it
+    # the GPU-resident weights alone would roughly fill both GPUs and OOM.
+    # Same hybrid-attention Mamba cache concern as Qwen3.5, so --max-num-seqs
+    # is capped the same way (see the note on qwen-3.5-122b above).
+    qwen3.8-flash-next:
+        <<: *vllm-base
+        image: vllm/vllm-openai:${QWEN_FLASH_IMAGE_TAG:-qwen38-flash-next}
+        profiles: ["qwen-flash"]
+        container_name: vllm-qwen3-8-flash-next
+        environment:
+            - HF_TOKEN=${HF_TOKEN:-}
+            - VLLM_PLE_CPU_OFFLOAD=${QWEN_FLASH_PLE_CPU_OFFLOAD:-1}
+        ports:
+            - "8006:8000"
+        # Also on agent-sandbox (see that network's own comment below) so a
+        # network-isolated agent container can still reach this endpoint by
+        # name even though it has no route to the internet.
+        networks:
+            - default
+            - agent-sandbox
+        deploy:
+            resources:
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          device_ids: ["0", "1"]
+                          capabilities: [gpu]
+        command:
+            - --model=${QWEN_FLASH_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}
+            - --served-model-name=qwen3.8-flash-next
+
+            # 2 GPUs
+            - --tensor-parallel-size=2
+
+            # Important: test TEP-style execution
+            - --enable-expert-parallel
+
+            # Let current vLLM choose the best compatible MoE kernel first
+            - --moe-backend=auto
+
+            # RTX PRO 6000 memory constraints
+            - --gpu-memory-utilization=0.90
+
+            # You don't need 262K unless you actually use it
+            - --max-model-len=131072
+
+            # Real concurrency is 8-10
+            - --max-num-seqs=16
+            - --max-num-batched-tokens=8192
+
+            - --enable-chunked-prefill
+            - --async-scheduling
+            - --enable-prefix-caching
+
+            # Recipe explicitly disables this
+            - --no-enable-flashinfer-autotune
+
+            # Tooling
+            - --enable-auto-tool-choice
+            - --tool-call-parser=qwen3_coder
+            - --reasoning-parser=qwen3
+
+    # ── Benchmark runner ── the Commit0 A/B coding-agent benchmark
+    # (scripts/README.md's "Commit0 benchmark" section). Talks to the
+    # *host*'s Docker daemon via a socket mount (Docker-outside-of-Docker)
+    # rather than running a nested one of its own. Not a long-running
+    # service: run one-off commands against it, e.g.
+    #   docker compose --profile benchmark run --rm benchmark \
+    #       uv run scripts/python/benchmark_commit0.py prepare --lite
+    #   docker compose --profile benchmark run --rm benchmark \
+    #       uv run scripts/python/benchmark_commit0.py run --lite \
+    #       --docs-dir data/out/llm_results/<doc-model>/ctx95 \
+    #       --model hosted_vllm/qwen3.8-flash-next \
+    #       --api_base http://qwen3.8-flash-next:8000/v1 \
+    #       --replicates 3 --max-iterations 150 --timeout 3600
+    # Note --api_base there uses the compose *service name* and the
+    # container-internal port (8000), not the host-mapped port from that
+    # service's own `ports:` entry -- containers on the same compose network
+    # reach each other directly, without going through the host at all.
+    benchmark:
+        build: .
+        profiles: ["benchmark"]
+        container_name: reverse-se-benchmark
+        env_file:
+            - .env
+        environment:
+            # .env's own PROJECT_ROOT is a host-machine absolute path; this
+            # container's project root is always /app regardless of where the
+            # repo happens to live on whichever host runs this.
+            - PROJECT_ROOT=/app
+            # This container's own bind-mount source on the *host* -- needed so
+            # benchmark_commit0.py can bind-mount workspaces into the sibling
+            # agent/grading containers it launches over docker.sock. Docker
+            # resolves bind-mount sources against the host regardless of
+            # which container issues the `docker run` call, so this container's
+            # own /app path is useless for that -- it needs the real host path.
+            # ${PWD} is docker compose's own working directory at invoke time,
+            # which is this repo's root as long as `docker compose` is run from
+            # here (the normal case) -- override with HOST_PROJECT_ROOT=... if
+            # not.
+            - HOST_PROJECT_ROOT=${HOST_PROJECT_ROOT:-${PWD}}
+            - AGENT_SANDBOX_NETWORK=${COMPOSE_PROJECT_NAME:-reverse-se}_agent-sandbox
+        volumes:
+            - .:/app
+            - /var/run/docker.sock:/var/run/docker.sock
+        working_dir: /app
+        command: ["sleep", "infinity"]
+
+# agent-sandbox: where each individual coding-agent run actually executes
+# (src/reverse_se/benchmark/openhands_launch.py), *not* where
+# benchmark_commit0.py itself runs. `internal: true` means no default route to the internet --
+# confirmed necessary in practice: without it, an agent can (and did)
+# `pip download <the-exact-package-being-benchmarked>` or `git clone` the
+# project's real upstream GitHub repo and copy the reference implementation
+# straight over, since every benchmarked project is a real, publicly
+# published open-source project. Any service the agent legitimately needs
+# to reach (the model endpoint) must be explicitly attached to this network
+# too, same as qwen3.8-flash-next above.
+networks:
+    agent-sandbox:
+        internal: true
